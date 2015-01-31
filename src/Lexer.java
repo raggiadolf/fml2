@@ -23,15 +23,15 @@ public class Lexer {
    *  Scans the standard input(stdin),
    *  looking for patterns that match one of the tokens from Token?
    */
-    public TokenCode nextToken() {
+    public Token nextToken() {
         String curLexeme = "";
 
         try {
             int ch;
             while ((ch = reader.read()) != -1) {
                 nextChar = Character.toChars(ch)[0];
-                curLexeme += c;
-                System.out.println(c);
+                curLexeme += nextChar;
+                System.out.println(nextChar);
             }
         }
         catch (java.io.IOException ex) {
@@ -50,6 +50,8 @@ public class Lexer {
 
         catch (java.io.IOException ex) {
         }
+
+        return ' ';
     }
 
     //Returns null if Lexeme is not reserved, otherwise, the tokencode for the lexeme

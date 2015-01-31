@@ -19,22 +19,23 @@
    Term -> Factor | Factor * Term
    Factor -> int | id | (Expr)
 */
- */
+
 public class Parser {
-    private Lexer lex = new Lexer(), Token token;
+    private Lexer lex = new Lexer();
+    private Token token;
     public void parse() {
-        token = lex.nextToken();
+        token = Token();
         Statements();
     }
 
     private void Statements() {
         if (token.tCode == TokenCode.END) {
-            token = lex.nextToken();
+            token = nextToken();
         }
         else {
             Statement();
             if (token.tCode == TokenCode.SEMICOL)
-                token = lex.nextToken();
+                token = nextToken();
             else
                 Error();
             Statements();
@@ -43,9 +44,9 @@ public class Parser {
 
     private void Statement() {
         if (token.tCode == TokenCode.ID) {
-            token = lex.nextToken();
+            token = nextToken();
             if (token.tCode == TokenCode.ASSIGN) {
-                token = lex.nextToken();
+                token = nextToken();
                 Expr();
             }
             else {
@@ -53,9 +54,9 @@ public class Parser {
             }
         }
         else if (token.tCode == TokenCode.PRINT) {
-            token = lex.nextToken();
+            token = nextToken();
             if (token.tCode == TokenCode.id) {
-                token = lex.nextToken();
+                token = nextToken();
             }
             else {
                 error();
@@ -70,11 +71,11 @@ public class Parser {
         Term();
 
         if (token.tCode == TokenCode.PLUS) {
-            token = lex.nextToken();
+            token = nextToken();
             Expr();
         }
         else if (token.tCode == TokenCode.MINUS) {
-            token = lex.nextToken();
+            token = nextToken();
             Expr();
         }
         //Engin error.. má vera bara term og ekkert meira..
@@ -84,7 +85,7 @@ public class Parser {
         Factor();
 
         if (token.tCode == TokenCode.MULT) {
-            token = lex.nextToken();
+            token = nextToken();
             Term();
         }
 
@@ -93,16 +94,16 @@ public class Parser {
 
     private void Factor() {
         if (token.tCode == TokenCode.INT) {
-            token = lex.nextToken();
+            token = nextToken();
         }
         else if (token.tCode == TokenCode.ID) {
-            token = lex.nextToken();
+            token = nextToken();
         }
         else if (token.tCode == TokenCode.LPAREN) {
-            token = lex.nextToken();
+            token = nextToken();
             Expr();
             if (token.tCode == TokenCode.RPAREN) {
-                token = lex.nextToken();
+                token = nextToken();
             }
             else {
                 error();
@@ -117,5 +118,12 @@ public class Parser {
     private void Error() {
         System.out.println("Syntax error!");
         System.exit(0);
+    }
+
+    private Token nextToken() {
+        Token tmpToken = lex.nextToken();
+        if (tmpToken.tCode == TokenCode.ERROR)
+            error();
+        return tmpToken;
     }
 }
