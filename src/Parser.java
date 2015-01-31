@@ -24,7 +24,7 @@ public class Parser {
     private Lexer lex = new Lexer();
     private Token token;
     public void parse() {
-        token = Token();
+        token = nextToken();
         Statements();
     }
 
