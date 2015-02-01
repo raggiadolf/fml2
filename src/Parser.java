@@ -49,7 +49,6 @@ public class Parser {
     public void parse() {
         token = nextToken();
         Statements();
-        OutputCode();
     }
 
     private void Statements() {
@@ -153,14 +152,22 @@ public class Parser {
     }
 
     private void Error() {
+        OutputCode();
         System.out.println("Syntax error!");
         System.exit(0);
     }
 
     private Token nextToken() {
         Token tmpToken = lex.nextToken();
+
+        if (tmpToken == null) {
+            OutputCode();
+            System.exit(0);
+        }
+
         if (tmpToken.tCode == TokenCode.ERROR)
             Error();
+
         return tmpToken;
     }
 

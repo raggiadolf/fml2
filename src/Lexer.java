@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.io.Reader;
 import java.io.InputStreamReader;
+import java.io.BufferedReader;
 /**
  * Should contain a public method, nextToken(), which scans the standard input (stdin),
  * looking for patterns that match one of the tokens from Token.
@@ -23,28 +24,43 @@ import java.io.InputStreamReader;
  addChar() //Bætir character við lexeme
  */
 public class Lexer {
-    private Reader reader;
+    private BufferedReader reader;
     private char nextChar;
     private String curLexeme;
-    private CharacterClass charClass; /* "digit", "letter", "other" */
+    private CharacterClass charClass;
 
     public Lexer() {
-        reader = new InputStreamReader(System.in);
+        Reader tmpReader = new InputStreamReader(System.in);
+        reader = new BufferedReader(tmpReader);
         curLexeme = "";
+        getChar();
     }
 
     private void getChar() {
         int next = 0;
         try {
-            next = reader.read(); //-1 ef EOF
+            /*
+            do {
+                next = reader.read(); //-1 ef EOF
+            }while(next != -1 && Character.isWhitespace(Character.toChars(next)[0])); */
+            next = reader.read();
+            if (next == -1) {
+                charClass = CharacterClass.EOF; //Svo nextToken reyni ekki að lesa áfram eftir eof..
+                return;
+            }
         }
-        catch (java.io.IOException ex) {}
+
+        catch (java.io.IOException ex) { System.out.println("meh");}
+
         nextChar = Character.toChars(next)[0];
         if (Character.isDigit(nextChar)) {
             charClass = CharacterClass.Digit;
         }
         else if (Character.isLetter(nextChar)) {
             charClass = CharacterClass.Letter;
+        }
+        else if (Character.isWhitespace(nextChar)) {
+            charClass = CharacterClass.Whitespace;
         }
         else {
             charClass = CharacterClass.Other;
@@ -62,7 +78,7 @@ public class Lexer {
     public Token nextToken() {
         curLexeme = "";
         Token next = new Token();
-        getChar();
+        /* Erum nú þegar með nextChar.. */
 
         switch (charClass) {
             case Digit:
@@ -81,11 +97,24 @@ public class Lexer {
                 addChar();
                 getChar();
                 break;
+            case Whitespace:
+                /* I eat whitespaces */
+                while (charClass == CharacterClass.Whitespace) {
+                    getChar();
+                }
+                return nextToken(); //Náum í alvöru token..
+            case EOF:
+                curLexeme = "";
+                break;
         }
 
-        next.tCode = lookup(curLexeme);
-        next.lexeme = curLexeme;
-        return next;
+        //Curlexeme er tómt þegar við erum í EOF..
+        if (!curLexeme.equals("")) {
+            next.tCode = lookup(curLexeme);
+            next.lexeme = curLexeme;
+        }
+
+        return (curLexeme.equals("")) ? null : next;
     }
 
     /** Returns null if Lexeme is not reserved, otherwise, the tokencode for the lexeme
@@ -95,28 +124,31 @@ public class Lexer {
      */
     private TokenCode lookup(String lexeme) {
         TokenCode retValue = null;
-        if (lexeme == "+") {
+        if (lexeme.equals("+")) {
             retValue = TokenCode.PLUS;
         }
-        else if (lexeme == "-") {
+        else if (lexeme.equals("-")) {
             retValue = TokenCode.MINUS;
         }
-        else if (lexeme == "*") {
+        else if (lexeme.equals("*")) {
             retValue = TokenCode.MULT;
         }
-        else if (lexeme == "(") {
+        else if (lexeme.equals("(")) {
             retValue = TokenCode.LPAREN;
         }
-        else if (lexeme == ")") {
+        else if (lexeme.equals(")")) {
             retValue = TokenCode.RPAREN;
         }
-        else if (lexeme == ";") {
+        else if (lexeme.equals(";")) {
             retValue = TokenCode.SEMICOL;
         }
-        else if (lexeme == "end") {
+        else if (lexeme.equals("=")) {
+            retValue = TokenCode.ASSIGN;
+        }
+        else if (lexeme.equals("end")) {
             retValue = TokenCode.END;
         }
-        else if (lexeme == "print") {
+        else if (lexeme.equals("print")) {
             retValue = TokenCode.PRINT;
         }
         else if (Character.isDigit(lexeme.charAt(0))) {
@@ -134,6 +166,12 @@ public class Lexer {
 
     public static void main(String[] args) {
         Lexer lex = new Lexer();
-        lex.nextToken();
+        Token suchToken = lex.nextToken();
+        System.out.println("Lex: " + suchToken.lexeme + ", TokenCode: " + suchToken.tCode.toString());
+
+        for (int i = 0; i < 17; i++) {
+            suchToken = lex.nextToken();
+            System.out.println("Lex: " + suchToken.lexeme + ", TokenCode: " + suchToken.tCode.toString());
+        }
     }
 }
