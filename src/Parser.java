@@ -1,3 +1,4 @@
+import java.util.*;
 /**
  * This should be a top-down recursive-descent parser from the grammar G.
  * The output of the parser is the stack-based intermediate code S,
@@ -11,7 +12,7 @@
  * single public method, parse(), for initiating the parse - other methods are private.
  */
 
-/*
+/**
    Grammar G for language L
    Statements -> Statement ; Statements | end
    Statement -> id = Expr | print id
@@ -20,12 +21,35 @@
    Factor -> int | id | (Expr)
 */
 
+    /** Algorithm to create intermediate code */
+    /** IF not op:
+       Add "push this" to list
+       IF op/LPAREN:
+          push to ops stack
+       IF RPAREN
+          while (next pop != LPAREN)
+              pop and add tokenCode to list
+       IF SEMICOL:
+          while(!stack.empty())
+             pop ops stack and add tokenCode to list..
+     */
+
 public class Parser {
-    private Lexer lex = new Lexer();
+    private Lexer lex;
     private Token token;
+    private ArrayList<String> intermediateCode;
+    private Stack<Token> ops;
+
+    public Parser(Lexer lexer) {
+        intermediateCode = new ArrayList<String>();
+        ops = new Stack<Token>();
+        lex = lexer;
+    }
+
     public void parse() {
         token = nextToken();
         Statements();
+        OutputCode();
     }
 
     private void Statements() {
@@ -34,8 +58,10 @@ public class Parser {
         }
         else {
             Statement();
-            if (token.tCode == TokenCode.SEMICOL)
+            if (token.tCode == TokenCode.SEMICOL) {
+                HandleSemiCol();
                 token = nextToken();
+            }
             else
                 Error();
             Statements();
@@ -44,26 +70,30 @@ public class Parser {
 
     private void Statement() {
         if (token.tCode == TokenCode.ID) {
+            intermediateCode.add("PUSH " + token.lexeme);
             token = nextToken();
             if (token.tCode == TokenCode.ASSIGN) {
+                ops.push(token);
                 token = nextToken();
                 Expr();
             }
             else {
-                error();
+                Error();
             }
         }
         else if (token.tCode == TokenCode.PRINT) {
+            ops.push(token);
             token = nextToken();
-            if (token.tCode == TokenCode.id) {
+            if (token.tCode == TokenCode.ID) {
+                intermediateCode.add("PUSH " + token.lexeme);
                 token = nextToken();
             }
             else {
-                error();
+                Error();
             }
         }
         else {
-            error();
+            Error();
         }
     }
 
@@ -71,10 +101,12 @@ public class Parser {
         Term();
 
         if (token.tCode == TokenCode.PLUS) {
+            ops.push(token);
             token = nextToken();
             Expr();
         }
         else if (token.tCode == TokenCode.MINUS) {
+            ops.push(token);
             token = nextToken();
             Expr();
         }
@@ -85,6 +117,7 @@ public class Parser {
         Factor();
 
         if (token.tCode == TokenCode.MULT) {
+            ops.push(token);
             token = nextToken();
             Term();
         }
@@ -94,24 +127,28 @@ public class Parser {
 
     private void Factor() {
         if (token.tCode == TokenCode.INT) {
+            intermediateCode.add("PUSH " + token.lexeme);
             token = nextToken();
         }
         else if (token.tCode == TokenCode.ID) {
+            intermediateCode.add("PUSH " + token.lexeme);
             token = nextToken();
         }
         else if (token.tCode == TokenCode.LPAREN) {
+            ops.push(token);
             token = nextToken();
             Expr();
             if (token.tCode == TokenCode.RPAREN) {
+                HandleRPAREN();
                 token = nextToken();
             }
             else {
-                error();
+                Error();
             }
         }
         //Fengum ekkert af þessu? Ekki valid Factor..
         else {
-            error();
+            Error();
         }
     }
 
@@ -123,7 +160,30 @@ public class Parser {
     private Token nextToken() {
         Token tmpToken = lex.nextToken();
         if (tmpToken.tCode == TokenCode.ERROR)
-            error();
+            Error();
         return tmpToken;
+    }
+
+    private void HandleSemiCol() {
+        Token tmp;
+        while (!ops.empty()) {
+            tmp = ops.pop();
+            intermediateCode.add(tmp.tCode.toString());
+        }
+    }
+
+    private void HandleRPAREN() {
+        Token tmp;
+        while (true) {
+            if ((tmp = ops.pop()).tCode == TokenCode.LPAREN)
+                break;
+            intermediateCode.add(tmp.tCode.toString());
+        }
+    }
+
+    private void OutputCode() {
+        for (String item : intermediateCode) {
+            System.out.println(item);
+        }
     }
 }

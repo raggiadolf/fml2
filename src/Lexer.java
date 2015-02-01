@@ -13,48 +13,86 @@ import java.io.InputStreamReader;
  *      PRINT = print
  * The lexical analyzer returns a token with TokenCode = ERROR if some illegal lexeme is found.
  */
+
+/** Reads in characters. Skips all whitespace/comments.
+
+ lookup() //0 ef lexeme er ekki reserved word en annars tokenCode fyrir reserved word..
+
+ getchar() //Next char í input, setur í breytuna nextChar, athugar hvort þetta er char/digit/annað og setur í breytuna charClass
+
+ addChar() //Bætir character við lexeme
+ */
 public class Lexer {
-    private int nextTokenIndex = 0;
-    private ArrayList<Token> tokens = null;
-    private Reader reader = new InputStreamReader(System.in);
+    private Reader reader;
     private char nextChar;
+    private String curLexeme;
+    private CharacterClass charClass; /* "digit", "letter", "other" */
+
+    public Lexer() {
+        reader = new InputStreamReader(System.in);
+        curLexeme = "";
+    }
+
+    private void getChar() {
+        int next = 0;
+        try {
+            next = reader.read(); //-1 ef EOF
+        }
+        catch (java.io.IOException ex) {}
+        nextChar = Character.toChars(next)[0];
+        if (Character.isDigit(nextChar)) {
+            charClass = CharacterClass.Digit;
+        }
+        else if (Character.isLetter(nextChar)) {
+            charClass = CharacterClass.Letter;
+        }
+        else {
+            charClass = CharacterClass.Other;
+        }
+    }
+
+    private void addChar() {
+        curLexeme += nextChar;
+    }
 
     /*
    *  Scans the standard input(stdin),
    *  looking for patterns that match one of the tokens from Token?
    */
     public Token nextToken() {
-        String curLexeme = "";
+        curLexeme = "";
+        Token next = new Token();
+        getChar();
 
-        try {
-            int ch;
-            while ((ch = reader.read()) != -1) {
-                nextChar = Character.toChars(ch)[0];
-                curLexeme += nextChar;
-                System.out.println(nextChar);
-            }
+        switch (charClass) {
+            case Digit:
+                while (charClass == CharacterClass.Digit) {
+                    addChar();
+                    getChar();
+                }
+                break;
+            case Letter:
+                while (charClass == CharacterClass.Letter) {
+                    addChar();
+                    getChar();
+                }
+                break;
+            case Other:
+                addChar();
+                getChar();
+                break;
         }
-        catch (java.io.IOException ex) {
 
-        }
-
-        return lookup(curLexeme);
+        next.tCode = lookup(curLexeme);
+        next.lexeme = curLexeme;
+        return next;
     }
 
-    private char getChar() {
-        try {
-            int ch = reader.read();
-
-
-        }
-
-        catch (java.io.IOException ex) {
-        }
-
-        return ' ';
-    }
-
-    //Returns null if Lexeme is not reserved, otherwise, the tokencode for the lexeme
+    /** Returns null if Lexeme is not reserved, otherwise, the tokencode for the lexeme
+     * Erum ekki hérna inni nema lexeme sé strengur, integer, eða 1 random character..
+     * @param lexeme
+     * @return
+     */
     private TokenCode lookup(String lexeme) {
         TokenCode retValue = null;
         if (lexeme == "+") {
@@ -80,6 +118,15 @@ public class Lexer {
         }
         else if (lexeme == "print") {
             retValue = TokenCode.PRINT;
+        }
+        else if (Character.isDigit(lexeme.charAt(0))) {
+            retValue = TokenCode.INT;
+        }
+        else if (Character.isLetter(lexeme.charAt(0))) {
+            retValue = TokenCode.ID;
+        }
+        else {
+            retValue = TokenCode.ERROR;
         }
 
         return retValue;
