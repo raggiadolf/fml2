@@ -1,7 +1,5 @@
+import java.io.*;
 import java.util.ArrayList;
-import java.io.Reader;
-import java.io.InputStreamReader;
-import java.io.BufferedReader;
 /**
  * Should contain a public method, nextToken(), which scans the standard input (stdin),
  * looking for patterns that match one of the tokens from Token.
@@ -17,11 +15,11 @@ import java.io.BufferedReader;
 
 /** Reads in characters. Skips all whitespace/comments.
 
- lookup() //0 ef lexeme er ekki reserved word en annars tokenCode fyrir reserved word..
+ lookup() //0 is lexeme is not a reserved word, otherwise tokenCode for reserved word..
 
- getchar() //Next char í input, setur í breytuna nextChar, athugar hvort þetta er char/digit/annað og setur í breytuna charClass
+ getChar() //Next char in input, puts in the variable nextChar, check if it's a char/digit/something else and puts in the variable charClass
 
- addChar() //Bætir character við lexeme
+ addChar() //Adds a character to the lexeme
  */
 public class Lexer {
     private BufferedReader reader;
@@ -36,6 +34,20 @@ public class Lexer {
         getChar();
     }
 
+    public Lexer(String filename) {
+        try {
+            InputStream filestream = new FileInputStream(filename);
+            Reader tmpReader = new InputStreamReader(filestream);
+            reader = new BufferedReader(tmpReader);
+            curLexeme = "";
+            getChar();
+        } catch(java.io.FileNotFoundException ex) {
+            System.err.println("File not found.");
+            System.err.println(ex.getStackTrace().toString());
+        }
+
+    }
+
     private void getChar() {
         int next = 0;
         try {
@@ -45,7 +57,7 @@ public class Lexer {
             }while(next != -1 && Character.isWhitespace(Character.toChars(next)[0])); */
             next = reader.read();
             if (next == -1) {
-                charClass = CharacterClass.EOF; //Svo nextToken reyni ekki að lesa áfram eftir eof..
+                charClass = CharacterClass.EOF; //So nextTonken does not try and continue reading after eof..
                 return;
             }
         }
@@ -78,7 +90,7 @@ public class Lexer {
     public Token nextToken() {
         curLexeme = "";
         Token next = new Token();
-        /* Erum nú þegar með nextChar.. */
+        /* We already have nextChar.. */
 
         switch (charClass) {
             case Digit:
@@ -102,13 +114,13 @@ public class Lexer {
                 while (charClass == CharacterClass.Whitespace) {
                     getChar();
                 }
-                return nextToken(); //Náum í alvöru token..
+                return nextToken(); //Get a real token..
             case EOF:
                 curLexeme = "";
                 break;
         }
 
-        //Curlexeme er tómt þegar við erum í EOF..
+        //Curlexeme is empty when we are at EOF..
         if (!curLexeme.equals("")) {
             next.tCode = lookup(curLexeme);
             next.lexeme = curLexeme;
@@ -118,7 +130,7 @@ public class Lexer {
     }
 
     /** Returns null if Lexeme is not reserved, otherwise, the tokencode for the lexeme
-     * Erum ekki hérna inni nema lexeme sé strengur, integer, eða 1 random character..
+     * We are not in here unless lexeme is a string, integer or 1 random character..
      * @param lexeme
      * @return
      */

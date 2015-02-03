@@ -109,7 +109,7 @@ public class Parser {
             token = nextToken();
             Expr();
         }
-        //Engin error.. má vera bara term og ekkert meira..
+        //No error.. can be just term and nothing more..
     }
 
     private void Term() {
@@ -121,7 +121,7 @@ public class Parser {
             Term();
         }
 
-        //Ekkert error.. má vera bara factor..
+        //No error.. can be just factor..
     }
 
     private void Factor() {
@@ -145,7 +145,7 @@ public class Parser {
                 Error();
             }
         }
-        //Fengum ekkert af þessu? Ekki valid Factor..
+        //Got none of that? not a valid Factor..
         else {
             Error();
         }
