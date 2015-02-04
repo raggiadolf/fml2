@@ -34,6 +34,14 @@ import java.util.*;
              pop ops stack and add tokenCode to list..
      */
 
+     /* Algrimurinn Josafat:
+        IF *: push
+        IF +/-: Athuga hvort fyrri a ops stack se *, ef svo er.. pop og output MULT.. svo push self to stack..
+        IF ( : Push to stack
+        IF ) : Pop ops stack until (and including the LPAREN)
+        IF ; : Pop ops stack until.. empty..
+       * */
+
     /** IF not op:
      Add "push this" to list
      IF op/LPAREN:
@@ -117,18 +125,34 @@ public class Parser {
         Term();
 
         if (token.tCode == TokenCode.PLUS) {
-            //Check for mult.. (+/- skiptir lidum)
+            /*Check for mult.. (+/- skiptir lidum)
             while (ops.peek().tCode == TokenCode.MULT)
                 intermediateCode.add(ops.pop().tCode.toString());
+            ops.push(token); */
+            if (!ops.isEmpty()) {
+                if (ops.peek().tCode == TokenCode.MULT) {
+                    intermediateCode.add(ops.pop().tCode.toString());
+                }
+            }
+
             ops.push(token);
+
             token = nextToken();
             Expr();
         }
         else if (token.tCode == TokenCode.MINUS) {
-            //Check for mult.. (+/- skiptir lidum)
+            /*Check for mult.. (+/- skiptir lidum)
             while (ops.peek().tCode == TokenCode.MULT)
                 intermediateCode.add(ops.pop().tCode.toString());
+            ops.push(token); */
+            if (!ops.isEmpty()) {
+                if (ops.peek().tCode == TokenCode.MULT) {
+                    intermediateCode.add(ops.pop().tCode.toString());
+                }
+            }
+
             ops.push(token);
+
             token = nextToken();
             Expr();
         }
@@ -212,9 +236,9 @@ public class Parser {
             //intermediateCode.add(tmp.tCode.toString());
         }
 
-        //Check for MULT
+        /*Check for MULT
         if (ops.peek().tCode == TokenCode.MULT)
-            intermediateCode.add(ops.pop().tCode.toString());
+            intermediateCode.add(ops.pop().tCode.toString()); */
     }
 
     private String getOpCodeForOp(TokenCode tCode) {
