@@ -34,6 +34,23 @@ import java.util.*;
              pop ops stack and add tokenCode to list..
      */
 
+    /** IF not op:
+     Add "push this" to list
+     IF op/LPAREN:
+        push to ops stack
+        if (+ or -)
+           while (ops.peek() == *)
+              pop ops stack and add mult to list
+     IF RPAREN
+       while (next pop != LPAREN)
+          pop and add tokenCode to list
+       if (ops.peek() == *)
+          pop ops stack and add MULT to list..
+     IF SEMICOL:
+     while(!stack.empty())
+     pop ops stack and add tokenCode to list..
+     */
+
 public class Parser {
     private Lexer lex;
     private Token token;
@@ -100,11 +117,17 @@ public class Parser {
         Term();
 
         if (token.tCode == TokenCode.PLUS) {
+            //Check for mult.. (+/- skiptir lidum)
+            while (ops.peek().tCode == TokenCode.MULT)
+                intermediateCode.add(ops.pop().tCode.toString());
             ops.push(token);
             token = nextToken();
             Expr();
         }
         else if (token.tCode == TokenCode.MINUS) {
+            //Check for mult.. (+/- skiptir lidum)
+            while (ops.peek().tCode == TokenCode.MULT)
+                intermediateCode.add(ops.pop().tCode.toString());
             ops.push(token);
             token = nextToken();
             Expr();
@@ -175,7 +198,8 @@ public class Parser {
         Token tmp;
         while (!ops.empty()) {
             tmp = ops.pop();
-            intermediateCode.add(tmp.tCode.toString());
+            intermediateCode.add(getOpCodeForOp(tmp.tCode));
+            //intermediateCode.add(tmp.tCode.toString());
         }
     }
 
@@ -184,8 +208,22 @@ public class Parser {
         while (true) {
             if ((tmp = ops.pop()).tCode == TokenCode.LPAREN)
                 break;
-            intermediateCode.add(tmp.tCode.toString());
+            intermediateCode.add(getOpCodeForOp(tmp.tCode));
+            //intermediateCode.add(tmp.tCode.toString());
         }
+
+        //Check for MULT
+        if (ops.peek().tCode == TokenCode.MULT)
+            intermediateCode.add(ops.pop().tCode.toString());
+    }
+
+    private String getOpCodeForOp(TokenCode tCode) {
+        if (tCode == TokenCode.PLUS)
+            return "ADD";
+        else if (tCode == TokenCode.MINUS)
+            return "SUB";
+        else
+            return tCode.toString();
     }
 
     private void OutputCode() {
